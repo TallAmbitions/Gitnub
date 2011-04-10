@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--EXTERNAL_PROPERTIES: LOCAL_PACKAGE_PATH;release.version-->
+<project name="Gitnub" default="all">
+  <property name="project.name" value="Gitnub"/>
+  <property name="packages.source.local"
+            value="${environment::get-variable('LOCAL_PACKAGE_SOURCE')}"
+            if="${environment::variable-exists('LOCAL_PACKAGE_SOURCE')}" />
+  <property name="build.version"
+            value="${version.major}.${version.minor}.${version.build}.${version.revision}"
+            dynamic="true"/>
+  <property name="build.assemblyversion" value="${version.major}.${version.minor}.0.0" dynamic="true"/>
+
+  <property name="project.path" value="${project::get-base-directory()}" />
+  <property name="asminfo.filepath" value="${project.path}/Source/AssemblyInfo.cs" />
+  <property name="dist.path" value="${project.path}/dist"/>
+  <property name="build.path" value="${project.path}/build"/>
+  <property name="build.debug" value="PDBOnly" overwrite="false" />
+  <property name="build.defines" value="" overwrite="false" />
+  <property name="build.optimize" value="true" overwrite="false" />
+  <property name="tools.git.path" value="${project.path}/tools/git" />
+  <property name="tools.nuget.path" value="${project.path}/tools/nuget" />
+ 
+  <property name="nuget.package.name" value="${project.name}" />
+
+  <target name="gitnub-core" depends="init create-assembly-info">
+    <property name="output.name" value="Tall.Gitnub.Core" />
+    <csc noconfig="true"
+         warnaserror="true"
+         target="library"
+         debug="${build.debug}"
+         optimize="${build.optimize}"
+         define="${build.defines}"
+         output="${build.path}/${output.name}.dll"
+         doc="${build.path}/${output.name}.xml"
+         keyfile="${project.name}.snk" >
+        <sources>
+          <include name="${asminfo.filepath}"/>
+          <include name="source/Tall.Gitnub.Core/**/*.cs"/>
+        </sources>
+        <references>
+          <include name="mscorlib.dll"/>
+          <include name="System.dll"/>
+          <include name="System.Core.dll"/>
+        </references>
+    </csc>
+  </target>
+
+  <target name="all" depends="gitnub-core" />
+  <target name="dist" depends="rebuild build-nuget-package build-dist-zip" />
+  <target name="rebuild" depends="clean build" />
+  <target name="build" depends="init all" />
+  <target name="publish" depends="get-git-revision">
+    <exec program="${tools.nuget.path}\nuget.exe" commandline="push ${dist.path}\${nuget.package.name}.${build.version}.nupkg" />
+  </target>
+
+  <target name="clean">
+    <delete dir="${dist.path}" />
+    <delete dir="${build.path}" />
+  </target>
+
+  <target name="init" depends="get-git-revision">
+    <mkdir dir="${dist.path}" />
+    <mkdir dir="${build.path}" />
+  </target>
+
+  <target name="create-assembly-info" depends="get-git-revision">
+    <echo message="Build number: ${build.version}" />
+    <asminfo output="${asminfo.filepath}" language="CSharp">
+      <imports>
+        <import namespace="System"/>
+        <import namespace="System.Reflection"/>
+        <import namespace="System.Runtime.InteropServices"/>
+      </imports>
+      <attributes>
+        <attribute type="AssemblyProductAttribute" value="Gitnub: Automated Tasks for Github" />
+        <attribute type="AssemblyCompanyAttribute" value="Tall Ambitions LLC" />
+        <attribute type="AssemblyCopyrightAttribute" value="Copyright © 2011 Tall Ambitions LLC, and contributors" />
+        <attribute type="AssemblyVersionAttribute" value="${build.assemblyversion}" />
+        <attribute type="AssemblyFileVersionAttribute" value="${build.version}" />
+        <attribute type="ComVisibleAttribute" value="false" />
+        <attribute type="CLSCompliantAttribute" value="true" />
+      </attributes>
+    </asminfo>
+  </target>
+
+  <target name="build-nuget-package" depends="build">
+    <xmlpoke file="${nuget.package.name}.nuspec"
+             xpath="//package/nu:metadata/nu:version"
+             value="${build.version}">
+      <namespaces>
+        <namespace prefix="xsi" uri="http://www.w3.org/2001/XMLSchema-instance" />
+        <namespace prefix="xsd" uri="http://www.w3.org/2001/XMLSchema" />
+        <namespace prefix="nu" uri="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd" />
+      </namespaces>
+    </xmlpoke>
+
+    <exec program="${tools.nuget.path}/nuget.exe"
+          commandline="pack ${nuget.package.name}.nuspec /OutputDirectory ${dist.path} /Verbose" />
+
+    <copy todir="${packages.source.local}" unless="${packages.source.local == ''}" flatten="true">
+      <fileset>
+        <include name="${dist.path}/${project.path}.${build.version}.nupkg" />
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="get-git-revision">
+    <property name="temp.revision.file" value="RevisionNr.tmp" />
+    <exec program="${tools.git.path}/git.exe"
+          commandline="describe --long"
+          failonerror="true"
+          output="${temp.revision.file}" />
+    <loadfile file="${temp.revision.file}" property="actual.git.revision" />
+    <regex pattern="(?'gitmajor'\d+)\.(?'gitminor'\d+)\.(?'gitbuild'\d+)\.(\d+)-(?'gitrevisionnumber'\d+)-.*"
+           input="${actual.git.revision}" />
+    <property name="version.major" value="${gitmajor}" overwrite="true" />
+    <property name="version.minor" value="${gitminor}" overwrite="true" />
+    <property name="version.build" value="${gitbuild}" overwrite="true" />
+    <property name="version.revision" value="${gitrevisionnumber}" overwrite="true" />
+    <delete file="${temp.revision.file}" failonerror="false" />
+  </target>
+
+  <target name="tag" depends="get-git-revision">
+    <fail if="${release.version == ''}"
+          message="Property 'release.version' is not set." />
+    <regex pattern="(?'relmajor'\d+)\.(?'relminor'\d+)\.(?'relbuild'\d+)\.(?'relrevision'\d+)"
+           input="${release.version}" />
+    <fail message="Version number ${release.version} should be greater than the current version number ${build.version}."
+          unless="${relmajor > version.major or
+                   (relmajor == version.major and
+                     (relminor > version.minor or
+                     (relminor == version.minor and relbuild > version.build)))}" />
+    <echo message="Tagging release with version ${release.version}" />
+    <exec program="${tools.git.path}/git.exe"
+          commandline='tag -a ${release.version} -m "Release ${release.version}"' />
+    <call target="get-git-revision" />
+  </target>
+
+  <target name="build-dist-zip" depends="build">
+    <zip zipfile="${dist.path}/${project.name}.${build.version}.zip">
+      <fileset basedir="${build.path}">
+        <include name="*" />
+      </fileset>
+    </zip>  </target>
+</project>
