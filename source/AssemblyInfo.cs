@@ -15,8 +15,8 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyProductAttribute("Gitnub: Automated Tasks for Github")]
 [assembly: AssemblyCompanyAttribute("Tall Ambitions LLC")]
 [assembly: AssemblyCopyrightAttribute("Copyright © 2011 Tall Ambitions LLC, and contributors")]
-[assembly: AssemblyVersionAttribute("0.1.0.0")]
-[assembly: AssemblyFileVersionAttribute("0.1.0.0")]
+[assembly: AssemblyVersionAttribute("0.2.0.0")]
+[assembly: AssemblyFileVersionAttribute("0.2.0.0")]
 [assembly: ComVisibleAttribute(false)]
 [assembly: CLSCompliantAttribute(true)]
 
