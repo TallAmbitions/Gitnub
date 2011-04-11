@@ -28,7 +28,6 @@
   </patternset>
   <patternset id="core-references">
     <include name="mscorlib.dll" />
-    <include name="Microsoft.CSharp.dll" />
     <include name="System.dll" />
     <include name="System.Core.dll" />
     <include name="lib/jsonfx/*.dll" />
