@@ -20,60 +20,92 @@
   <property name="tools.git.path" value="${project.path}/tools/git" />
   <property name="tools.nuget.path" value="${project.path}/tools/nuget" />
 
-  <property name="nuget.package.name" value="${project.name}" />
+  <property name="output.path" value="${build.path}/${output.name}" dynamic="true" />
 
-  <target name="gitnub.core">
+  <patternset id="core-sources">
+    <include name="source/Tall.Gitnub.Core/**/*.cs" />
+    <include name="${asminfo.filepath}" />
+  </patternset>
+  <patternset id="core-references">
+    <include name="mscorlib.dll" />
+    <include name="Microsoft.CSharp.dll" />
+    <include name="System.dll" />
+    <include name="System.Core.dll" />
+    <include name="lib/jsonfx/*.dll" />
+  </patternset>
+
+  <target name="gitnub.core" depends="init create-assembly-info">
     <property name="output.name" value="Tall.Gitnub.Core" />
-    <patternset id="build.sources">
-    </patternset>
-      <call target="core-build" />
-  </target>
-
-  <target name="gitnub.console">
-    <property name="output.name" value="Gitnub" />
-    <patternset id="build.sources">
-      <include name="source/Tall.Gitnub.Console/**/*.cs" />
-    </patternset>
-    <property name="target-type" value="exe" />
-    <call target="core-build" />
-  </target>
-
-  <target name="core-build" depends="init create-assembly-info">
-    <property name="target-type" value="library" overwrite="false" />
-    <property name="output.path" value="${build.path}/${output.name}" />
-    <property name="output.extension" value=".exe" if="${target-type == 'exe'}" />
-    <property name="output.extension" value=".dll" if="${target-type == 'library'}" />
     <csc noconfig="true"
          warnaserror="true"
-         target="${target-type}"
+         target="library"
          debug="${build.debug}"
          optimize="${build.optimize}"
          define="${build.defines}"
-         output="${output.path}/${output.name}${output.extension}"
+         output="${output.path}/${output.name}.dll"
          doc="${output.path}/${output.name}.xml"
          keyfile="${project.name}.snk" >
       <sources>
-        <include name="${asminfo.filepath}" />
-        <include name="source/Tall.Gitnub.Core/**/*.cs" />
-        <patternset refid="build.sources" />
+        <patternset refid="core-sources" />
       </sources>
       <references>
-        <include name="mscorlib.dll" />
-        <include name="Microsoft.CSharp.dll" />
-        <include name="System.dll" />
-        <include name="System.Core.dll" />
-        <include name="lib/jsonfx/*.dll" />
+        <patternset refid="core-references" />
       </references>
     </csc>
+    <call target="copy-dependencies" />
+  </target>
 
-    <copy flatten="true" todir="${output.path}">
+  <target name="gitnub.console" depends="init create-assembly-info">
+    <property name="output.name" value="Gitnub" />
+    <csc noconfig="true"
+         warnaserror="true"
+         target="exe"
+         debug="${build.debug}"
+         optimize="${build.optimize}"
+         define="${build.defines}"
+         output="${output.path}/${output.name}.exe"
+         keyfile="${project.name}.snk" >
+      <sources>
+        <patternset refid="core-sources" />
+        <include name="source/Tall.Gitnub.Console/**/*.cs" />
+      </sources>
+      <references>
+        <patternset refid="core-references" />
+      </references>
+    </csc>
+    <call target="copy-dependencies" />
+  </target>
+
+  <target name="gitnub.nant" depends="init create-assembly-info">
+    <property name="output.name" value="Tall.Gitnub.Nant" />
+    <csc noconfig="true"
+         warnaserror="true"
+         target="library"
+         debug="${build.debug}"
+         optimize="${build.optimize}"
+         define="${build.defines}"
+         output="${output.path}/${output.name}.dll" >
+      <sources>
+        <patternset refid="core-sources" />
+        <include name="source/Tall.Gitnub.Nant/**/*.cs" />
+      </sources>
+      <references>
+        <patternset refid="core-references" />
+        <include name="tools/nant/Nant.Core.dll" />
+      </references>
+    </csc>
+    <call target="copy-dependencies" />
+  </target>
+
+  <target name="copy-dependencies">
+    <copy flatten="true" todir="${build.path}/${output.name}">
       <fileset>
         <include name="lib/jsonfx/*.dll" />
       </fileset>
     </copy>
   </target>
 
-  <target name="all" depends="gitnub.core gitnub.console" />
+  <target name="all" depends="gitnub.core gitnub.console gitnub.nant" />
   <target name="dist" depends="rebuild build-dist-zip" />
   <target name="rebuild" depends="clean build" />
   <target name="build" depends="init all" />
@@ -86,7 +118,6 @@
   </target>
 
   <target name="init" depends="get-git-revision">
-    <mkdir dir="${dist.path}" />
     <mkdir dir="${build.path}" />
   </target>
 
@@ -164,6 +195,7 @@
   </target>
 
   <target name="build-dist-zip" depends="build">
+    <mkdir dir="${dist.path}" />
     <zip zipfile="${dist.path}/${project.name}.${build.version}.zip">
       <fileset basedir="${build.path}">
         <include name="**/*" />

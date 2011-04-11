@@ -71,13 +71,13 @@ namespace Tall.Gitnub.Core
                 var postValues = new List<FormEntry>
                                      {
                                          new FormEntry {Name = @"Filename", Value = localFilename},
-                                         new FormEntry {Name = @"key", Value = result.prefix + localFilename},
-                                         new FormEntry {Name = @"policy", Value = result.policy},
-                                         new FormEntry {Name = @"AWSAccessKeyId", Value = result.accesskeyid},
-                                         new FormEntry {Name = @"signature", Value = result.signature},
-                                         new FormEntry {Name = @"acl", Value = result.acl},
+                                         new FormEntry {Name = @"key", Value = (string)result["path"]},
+                                         new FormEntry {Name = @"policy", Value = (string)result["policy"]},
+                                         new FormEntry {Name = @"AWSAccessKeyId", Value = (string)result["accesskeyid"]},
+                                         new FormEntry {Name = @"signature", Value = (string)result["signature"]},
+                                         new FormEntry {Name = @"acl", Value = (string)result["acl"]},
                                          new FormEntry {Name = @"success_action_status", Value = @"201"},
-                                         new FormEntry {Name = @"Content-Type", Value = contentType, },
+                                         new FormEntry {Name = @"Content-Type", Value = (string)result["mime_type"], },
                                          // File must be the last entry
                                          new FormEntry {Name = @"file", Value = localFilename, FileContents = fileContents},
                                      };
@@ -85,7 +85,7 @@ namespace Tall.Gitnub.Core
             }
         }
 
-        private static dynamic PostFormData(string address, NameValueCollection formValues)
+        private static IDictionary<string, object> PostFormData(string address, NameValueCollection formValues)
         {
             var values = formValues.AllKeys.Select(key => String.Format("{0}={1}",
                                      key, //TODO: UrlEncode
@@ -93,8 +93,8 @@ namespace Tall.Gitnub.Core
             var json = new JsonReader();
             return MakeRequest(address,
                                @"application/x-www-form-urlencoded",
-                               String.Join("&", values),
-                               reader => json.Read(reader.ReadToEnd()));
+                               String.Join("&", values.ToArray()),
+                               reader => json.Read<Dictionary<string, object>>(reader.ReadToEnd()));
         }
 
         private static string PostMultipartData(string address, IEnumerable<FormEntry> values)

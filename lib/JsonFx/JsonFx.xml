@@ -4606,18 +4606,6 @@
             "An element's namespace and attribute nodes have a document order position greater than the element but less than any child node of the element."
             </remarks>
         </member>
-        <member name="M:JsonFx.CodeGen.DynamicGetter.#ctor(System.String)">
-            <summary>
-            Ctor
-            </summary>
-            <param name="name"></param>
-        </member>
-        <member name="M:JsonFx.CodeGen.DynamicSetter.#ctor(System.String)">
-            <summary>
-            Ctor
-            </summary>
-            <param name="name"></param>
-        </member>
         <member name="T:JsonFx.CodeGen.DynamicMethodGenerator">
             <summary>
             Generates delegates for getting/setting properties and field and invoking constructors

@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{CBA28303-44C8-43BF-8E80-31065C2280DD}</ProjectGuid>
+    <ProjectGuid>{55708E60-A806-48F9-B825-C02AAA17D9BC}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Tall.Gitnub.Core</RootNamespace>
-    <AssemblyName>Tall.Gitnub.Core</AssemblyName>
+    <RootNamespace>Tall.Gitnub.Nant</RootNamespace>
+    <AssemblyName>Tall.Gitnub.Nant</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -32,8 +32,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="JsonFx">
-      <HintPath>..\..\lib\JsonFx\JsonFx.dll</HintPath>
+    <Reference Include="NAnt.Core">
+      <HintPath>..\..\tools\nant\NAnt.Core.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -43,11 +43,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MimeMap.cs" />
-    <Compile Include="Downloads.cs" />
+    <Compile Include="AddFiles.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Tall.Gitnub.Core\Tall.Gitnub.Core.csproj">
+      <Project>{CBA28303-44C8-43BF-8E80-31065C2280DD}</Project>
+      <Name>Tall.Gitnub.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
