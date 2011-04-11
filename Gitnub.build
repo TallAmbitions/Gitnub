@@ -33,15 +33,17 @@
          output="${build.path}/${output.name}.dll"
          doc="${build.path}/${output.name}.xml"
          keyfile="${project.name}.snk" >
-        <sources>
-          <include name="${asminfo.filepath}"/>
-          <include name="source/Tall.Gitnub.Core/**/*.cs"/>
-        </sources>
-        <references>
-          <include name="mscorlib.dll"/>
-          <include name="System.dll"/>
-          <include name="System.Core.dll"/>
-        </references>
+      <sources>
+        <include name="${asminfo.filepath}" />
+        <include name="source/Tall.Gitnub.Core/**/*.cs" />
+      </sources>
+      <references>
+        <include name="mscorlib.dll" />
+        <include name="Microsoft.CSharp.dll" />
+        <include name="System.dll" />
+        <include name="System.Core.dll" />
+        <include name="lib\jsonfx\*.dll" />
+      </references>
     </csc>
   </target>
 
