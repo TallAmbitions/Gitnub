@@ -19,40 +19,65 @@
   <property name="build.optimize" value="true" overwrite="false" />
   <property name="tools.git.path" value="${project.path}/tools/git" />
   <property name="tools.nuget.path" value="${project.path}/tools/nuget" />
- 
+
   <property name="nuget.package.name" value="${project.name}" />
 
-  <target name="gitnub-core" depends="init create-assembly-info">
+  <target name="gitnub.core">
     <property name="output.name" value="Tall.Gitnub.Core" />
+    <patternset id="build.sources">
+    </patternset>
+      <call target="core-build" />
+  </target>
+
+  <target name="gitnub.console">
+    <property name="output.name" value="Gitnub" />
+    <patternset id="build.sources">
+      <include name="source/Tall.Gitnub.Console/**/*.cs" />
+    </patternset>
+    <property name="target-type" value="exe" />
+    <call target="core-build" />
+  </target>
+
+  <target name="core-build" depends="init create-assembly-info">
+    <property name="target-type" value="library" overwrite="false" />
+    <property name="output.path" value="${build.path}/${output.name}" />
+    <property name="output.extension" value=".exe" if="${target-type == 'exe'}" />
+    <property name="output.extension" value=".dll" if="${target-type == 'library'}" />
     <csc noconfig="true"
          warnaserror="true"
-         target="library"
+         target="${target-type}"
          debug="${build.debug}"
          optimize="${build.optimize}"
          define="${build.defines}"
-         output="${build.path}/${output.name}.dll"
-         doc="${build.path}/${output.name}.xml"
+         output="${output.path}/${output.name}${output.extension}"
+         doc="${output.path}/${output.name}.xml"
          keyfile="${project.name}.snk" >
       <sources>
         <include name="${asminfo.filepath}" />
         <include name="source/Tall.Gitnub.Core/**/*.cs" />
+        <patternset refid="build.sources" />
       </sources>
       <references>
         <include name="mscorlib.dll" />
         <include name="Microsoft.CSharp.dll" />
         <include name="System.dll" />
         <include name="System.Core.dll" />
-        <include name="lib\jsonfx\*.dll" />
+        <include name="lib/jsonfx/*.dll" />
       </references>
     </csc>
+
+    <copy flatten="true" todir="${output.path}">
+      <fileset>
+        <include name="lib/jsonfx/*.dll" />
+      </fileset>
+    </copy>
   </target>
 
-  <target name="all" depends="gitnub-core" />
-  <target name="dist" depends="rebuild build-nuget-package build-dist-zip" />
+  <target name="all" depends="gitnub.core gitnub.console" />
+  <target name="dist" depends="rebuild build-dist-zip" />
   <target name="rebuild" depends="clean build" />
   <target name="build" depends="init all" />
   <target name="publish" depends="get-git-revision">
-    <exec program="${tools.nuget.path}\nuget.exe" commandline="push ${dist.path}\${nuget.package.name}.${build.version}.nupkg" />
   </target>
 
   <target name="clean">
@@ -141,7 +166,8 @@
   <target name="build-dist-zip" depends="build">
     <zip zipfile="${dist.path}/${project.name}.${build.version}.zip">
       <fileset basedir="${build.path}">
-        <include name="*" />
+        <include name="**/*" />
       </fileset>
-    </zip>  </target>
+    </zip>
+  </target>
 </project>
