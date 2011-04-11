@@ -109,7 +109,14 @@
   <target name="dist" depends="rebuild build-dist-zip" />
   <target name="rebuild" depends="clean build" />
   <target name="build" depends="init all" />
-  <target name="publish" depends="get-git-revision">
+  <target name="publish" depends="dist get-git-revision">
+    <loadtasks assembly="tools/gitnub/Tall.Gitnub.Nant.dll" />
+
+    <github-addfile filename="${dist.path}/${project.name}.${build.version}.zip"
+                    description="Gitnub binaries: v${build.version}"
+                    username="${git::readconfig('github.user')}"
+                    usertoken="${git::readconfig('github.token')}"
+                    repository="Tallambitions/Gitnub" />
   </target>
 
   <target name="clean">
