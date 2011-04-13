@@ -4,18 +4,16 @@ namespace Tall.Gitnub.Core
 {
     using System;
     using System.Collections.Generic;
-    using System.Collections.Specialized;
     using System.IO;
     using System.Linq;
-    using System.Text.RegularExpressions;
 
     /// <summary>
     /// Class that can read from Git config files.
     /// </summary>
     public class GitConfig
     {
-        private readonly NameValueCollection localConfig = LoadLocalConfig();
-        private readonly NameValueCollection globalConfig = LoadGlobalConfig();
+        private readonly GitConfigStore localConfig = LoadLocalConfig();
+        private readonly GitConfigStore globalConfig = LoadGlobalConfig();
 
         /// <summary>
         /// Gets a value from the configuration.
@@ -77,7 +75,7 @@ namespace Tall.Gitnub.Core
             return localConfig.GetValues(name) ?? Enumerable.Empty<string>();
         }
 
-        private static NameValueCollection LoadGlobalConfig()
+        private static GitConfigStore LoadGlobalConfig()
         {
             var environmentVariables = new[] {"HOME", "HOMEPATH"};
             var specialFolders = new[]
@@ -92,7 +90,7 @@ namespace Tall.Gitnub.Core
             return LoadConfig(paths, @".gitconfig");
         }
 
-        private static NameValueCollection LoadLocalConfig()
+        private static GitConfigStore LoadLocalConfig()
         {
             return LoadConfig(GetParentDirectories(), @".git\config");
         }
@@ -107,51 +105,15 @@ namespace Tall.Gitnub.Core
             }
         }
 
-        private static NameValueCollection LoadConfig(IEnumerable<string> paths, string filename)
+        private static GitConfigStore LoadConfig(IEnumerable<string> paths, string filename)
         {
-            var result = new NameValueCollection(StringComparer.OrdinalIgnoreCase);
             var configFile = paths.Select(path => Path.Combine(path, filename))
                                   .FirstOrDefault(File.Exists);
-            if(configFile != null)
+            if (configFile != null)
             {
-                var section = string.Empty;
-                var sectionRegex = 
-                    new Regex(@"(\[\s*(?<section>[\w\.\-]+)(\s+""(?<subsection>[\w\.\-]+)"")?\s*\])" +
-                              @"|(?<key>[\w\-]+)\s*=(?<value>.*)");
-                var lines = File.ReadAllLines(configFile)
-                                .Select(line => line.Split('#', ';').First().Trim());
-
-                foreach (var line in lines)
-                {
-                    var match = sectionRegex.Match(line);
-                    if (match != Match.Empty)
-                    {
-                        var sectionGroup = match.Groups["section"];
-                        if (sectionGroup.Success)
-                        {
-                            section = sectionGroup.Value.Trim();
-                            var subsection = match.Groups["subsection"];
-                            if (subsection.Success)
-                            {
-                                //TODO: Case-sensitive!
-                                section = String.Join(".", new[] {section, subsection.Value});
-                            }
-                        }
-                        else
-                        {
-                            //TODO: Escaped characters, quotes, line-continuations
-                            var key = String.Format("{0}.{1}", section, match.Groups["key"].Value.Trim());
-                            var value = match.Groups["value"].Value.Trim();
-                            if (String.IsNullOrEmpty(value))
-                            {
-                                value = "true";
-                            }
-                            result.Add(key, value);
-                        }
-                    }
-                }
+                return new GitConfigStore(configFile);
             }
-            return result;
+            return new GitConfigStore();
         }
     }
 }

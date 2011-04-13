@@ -44,8 +44,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GitConfig.cs" />
+    <Compile Include="GitConfigStore.cs" />
     <Compile Include="MimeMap.cs" />
     <Compile Include="Downloads.cs" />
+    <Compile Include="Utility.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
