@@ -16,6 +16,7 @@ namespace Tall.Gitnub.Core
     {
         private readonly NameValueCollection localConfig = LoadLocalConfig();
         private readonly NameValueCollection globalConfig = LoadGlobalConfig();
+
         /// <summary>
         /// Gets a value from the configuration.
         /// </summary>
@@ -23,7 +24,7 @@ namespace Tall.Gitnub.Core
         /// <returns></returns>
         public string GetValue(string name)
         {
-            return this.GetLocalValue(name) ?? this.GetGlobalValue(name);
+            return this.GetLocalValues(name).SingleOrDefault() ?? this.GetGlobalValues(name).SingleOrDefault();
         }
 
         /// <summary>
@@ -33,7 +34,7 @@ namespace Tall.Gitnub.Core
         /// <returns></returns>
         public string GetGlobalValue(string name)
         {
-            return globalConfig[name];
+            return this.GetGlobalValues(name).FirstOrDefault();
         }
 
         /// <summary>
@@ -43,7 +44,37 @@ namespace Tall.Gitnub.Core
         /// <returns></returns>
         public string GetLocalValue(string name)
         {
-            return localConfig[name];
+            return this.GetLocalValues(name).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Gets all values from the configuration of the given name.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns></returns>
+        public IEnumerable<string> GetValues(string name)
+        {
+            return this.GetGlobalValues(name).Concat(this.GetLocalValues(name));
+        }
+
+        /// <summary>
+        /// Gets all values from the global configuration of the given name.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns></returns>
+        public IEnumerable<string> GetGlobalValues(string name)
+        {
+            return globalConfig.GetValues(name) ?? Enumerable.Empty<string>();
+        }
+
+        /// <summary>
+        /// Gets all values from the local configuration of the given name.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns></returns>
+        public IEnumerable<string> GetLocalValues(string name)
+        {
+            return localConfig.GetValues(name) ?? Enumerable.Empty<string>();
         }
 
         private static NameValueCollection LoadGlobalConfig()
@@ -109,9 +140,13 @@ namespace Tall.Gitnub.Core
                         else
                         {
                             //TODO: Escaped characters, quotes, line-continuations
-                            //TODO: Multi-values
                             var key = String.Format("{0}.{1}", section, match.Groups["key"].Value.Trim());
-                            result[key] = match.Groups["value"].Value.Trim();
+                            var value = match.Groups["value"].Value.Trim();
+                            if (String.IsNullOrEmpty(value))
+                            {
+                                value = "true";
+                            }
+                            result.Add(key, value);
                         }
                     }
                 }

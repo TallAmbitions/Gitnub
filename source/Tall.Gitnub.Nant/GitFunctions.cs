@@ -2,9 +2,12 @@
 // See included LICENSE for details.
 namespace Tall.Gitnub.Nant
 {
+    using System;
+    using System.Collections.Generic;
     using NAnt.Core;
     using NAnt.Core.Attributes;
     using Tall.Gitnub.Core;
+    using System.Linq;
 
     /// <summary>
     ///   Nant functions for dealing with git.
@@ -48,6 +51,44 @@ namespace Tall.Gitnub.Nant
         public string ReadGlobalConfig(string setting)
         {
             return this.config.GetGlobalValue(setting);
+        }
+
+        /// <summary>
+        ///   Reads a value from the git config.
+        /// </summary>
+        /// <param name = "setting">The setting to read.</param>
+        /// <returns></returns>
+        [Function("readconfig-all")]
+        public string ReadAllConfig(string setting)
+        {
+            return Join(this.config.GetValues(setting));
+        }
+
+        /// <summary>
+        ///   Reads a value from the local git config.
+        /// </summary>
+        /// <param name = "setting">The setting to read.</param>
+        /// <returns></returns>
+        [Function("readconfig-all-local")]
+        public string ReadAllLocalConfig(string setting)
+        {
+            return Join(this.config.GetLocalValues(setting));
+        }
+
+        /// <summary>
+        ///   Reads a value from the global git config.
+        /// </summary>
+        /// <param name = "setting">The setting to read.</param>
+        /// <returns></returns>
+        [Function("readconfig-all-global")]
+        public string ReadAllGlobalConfig(string setting)
+        {
+            return Join(this.config.GetGlobalValues(setting));
+        }
+
+        private string Join(IEnumerable<string> values)
+        {
+            return String.Join(",", values.ToArray());
         }
     }
 }
