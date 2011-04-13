@@ -84,8 +84,9 @@ namespace Tall.Gitnub.Core
             if(configFile != null)
             {
                 var section = string.Empty;
-                //TODO: Handle subsections format: [section "subsection"] (including case-sensitivity)
-                var sectionRegex = new Regex(@"(\[(?<section>[\w\.\-]+)\])|(?<key>[\w\-]+)\s*=(?<value>.*)");
+                var sectionRegex = 
+                    new Regex(@"(\[\s*(?<section>[\w\.\-]+)(\s+""(?<subsection>[\w\.\-]+)"")?\s*\])" +
+                              @"|(?<key>[\w\-]+)\s*=(?<value>.*)");
                 var lines = File.ReadAllLines(configFile)
                                 .Select(line => line.Split('#', ';').First().Trim());
 
@@ -98,6 +99,12 @@ namespace Tall.Gitnub.Core
                         if (sectionGroup.Success)
                         {
                             section = sectionGroup.Value.Trim();
+                            var subsection = match.Groups["subsection"];
+                            if (subsection.Success)
+                            {
+                                //TODO: Case-sensitive!
+                                section = String.Join(".", new[] {section, subsection.Value});
+                            }
                         }
                         else
                         {
