@@ -10,10 +10,21 @@ namespace Tall.Gitnub.Core
     /// <summary>
     /// Class that can read from Git config files.
     /// </summary>
-    public class GitConfig
+    public class GitConfiguration
     {
-        private readonly GitConfigStore localConfig = LoadLocalConfig();
-        private readonly GitConfigStore globalConfig = LoadGlobalConfig();
+        private readonly IConfigurationStore localConfiguration;
+        private readonly IConfigurationStore globalConfiguration;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GitConfiguration"/> class.
+        /// </summary>
+        /// <param name="localConfiguration">The local config; if <c>null</c> then the default is used.</param>
+        /// <param name="globalConfiguration">The global config; if <c>null</c> then the default is used.</param>
+        public GitConfiguration(IConfigurationStore localConfiguration = null, IConfigurationStore globalConfiguration = null)
+        {
+            this.globalConfiguration = localConfiguration ?? LoadGlobalConfig();
+            this.localConfiguration = globalConfiguration ?? LoadLocalConfig();
+        }
 
         /// <summary>
         /// Gets a value from the configuration.
@@ -62,7 +73,7 @@ namespace Tall.Gitnub.Core
         /// <returns></returns>
         public IEnumerable<string> GetGlobalValues(string name)
         {
-            return globalConfig.GetValues(name) ?? Enumerable.Empty<string>();
+            return this.globalConfiguration.GetValues(name) ?? Enumerable.Empty<string>();
         }
 
         /// <summary>
@@ -72,10 +83,10 @@ namespace Tall.Gitnub.Core
         /// <returns></returns>
         public IEnumerable<string> GetLocalValues(string name)
         {
-            return localConfig.GetValues(name) ?? Enumerable.Empty<string>();
+            return this.localConfiguration.GetValues(name) ?? Enumerable.Empty<string>();
         }
 
-        private static GitConfigStore LoadGlobalConfig()
+        private static IConfigurationStore LoadGlobalConfig()
         {
             var environmentVariables = new[] {"HOME", "HOMEPATH"};
             var specialFolders = new[]
@@ -90,7 +101,7 @@ namespace Tall.Gitnub.Core
             return LoadConfig(paths, @".gitconfig");
         }
 
-        private static GitConfigStore LoadLocalConfig()
+        private static IConfigurationStore LoadLocalConfig()
         {
             return LoadConfig(GetParentDirectories(), @".git\config");
         }
@@ -105,15 +116,15 @@ namespace Tall.Gitnub.Core
             }
         }
 
-        private static GitConfigStore LoadConfig(IEnumerable<string> paths, string filename)
+        private static IConfigurationStore LoadConfig(IEnumerable<string> paths, string filename)
         {
             var configFile = paths.Select(path => Path.Combine(path, filename))
                                   .FirstOrDefault(File.Exists);
             if (configFile != null)
             {
-                return new GitConfigStore(configFile);
+                return new GitConfigurationStore(configFile);
             }
-            return new GitConfigStore();
+            return new GitConfigurationStore();
         }
     }
 }

@@ -5,6 +5,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tall.Gitnub.Core", "source\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{AECE05FD-9EDC-421F-9932-60EB952DFB0B}"
 	ProjectSection(SolutionItems) = preProject
+		source\AssemblyInfo.cs = source\AssemblyInfo.cs
 		Gitnub.build = Gitnub.build
 	EndProjectSection
 EndProject

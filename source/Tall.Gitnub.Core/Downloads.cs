@@ -12,9 +12,9 @@ namespace Tall.Gitnub.Core
     using JsonFx.Json;
 
     /// <summary>
-    /// Class that uploads files to Github's download area.
+    /// Class that performs operations on Github's download area.
     /// </summary>
-    public class Downloads
+    public class Downloads : IDownloads
     {
         private const string BaseGithubUrl = @"https://github.com/";
         private const string BaseAmazonS3Url = @"http://github.s3.amazonaws.com/";

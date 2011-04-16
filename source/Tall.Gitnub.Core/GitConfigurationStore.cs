@@ -12,21 +12,21 @@ namespace Tall.Gitnub.Core
     /// <summary>
     /// Reads a Git config file into memory.
     /// </summary>
-    public class GitConfigStore
+    public class GitConfigurationStore : IConfigurationStore
     {
         private readonly NameValueCollection standardConfig = new NameValueCollection(StringComparer.OrdinalIgnoreCase);
         private readonly NameValueCollection subsectionConfig = new NameValueCollection(StringComparer.Ordinal);
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GitConfigStore"/> class.
+        /// Initializes a new instance of the <see cref="GitConfigurationStore"/> class.
         /// </summary>
-        public GitConfigStore() {}
+        public GitConfigurationStore() {}
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GitConfigStore"/> class.
+        /// Initializes a new instance of the <see cref="GitConfigurationStore"/> class.
         /// </summary>
         /// <param name="configFile">The config file.</param>
-        public GitConfigStore(string configFile)
+        public GitConfigurationStore(string configFile)
         {
             if (!String.IsNullOrEmpty(configFile))
             {
@@ -35,10 +35,10 @@ namespace Tall.Gitnub.Core
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GitConfigStore"/> class.
+        /// Initializes a new instance of the <see cref="GitConfigurationStore"/> class.
         /// </summary>
         /// <param name="lines">The lines of the configuration file.</param>
-        public GitConfigStore(IEnumerable<string> lines)
+        public GitConfigurationStore(IEnumerable<string> lines)
         {
             this.LoadConfig(lines.EmptyIfNull());
         }
