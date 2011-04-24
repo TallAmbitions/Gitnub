@@ -6,6 +6,7 @@ namespace Tall.Gitnub.Core
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Text.RegularExpressions;
 
     /// <summary>
     /// Class that can read from Git config files.
@@ -24,6 +25,18 @@ namespace Tall.Gitnub.Core
         {
             this.globalConfiguration = localConfiguration ?? LoadGlobalConfig();
             this.localConfiguration = globalConfiguration ?? LoadLocalConfig();
+        }
+
+        /// <summary>
+        /// Gets the currently checked out branch.
+        /// </summary>
+        /// <returns>the current branch or null if HEAD is detached</returns>
+        public string GetBranch()
+        {
+            var headFile = Path.Combine(Utility.FindGitDirectory(), "HEAD");
+            var line = File.ReadAllLines(headFile).First();
+            var match = Regex.Match(line, "^ref: (.*/)*(?'branch'.*)$");
+            return match.Success ? match.Groups["branch"].Value : null;
         }
 
         /// <summary>
@@ -103,17 +116,7 @@ namespace Tall.Gitnub.Core
 
         private static IConfigurationStore LoadLocalConfig()
         {
-            return LoadConfig(GetParentDirectories(), @".git\config");
-        }
-
-        private static IEnumerable<string> GetParentDirectories()
-        {
-            var dirInfo = new DirectoryInfo(Directory.GetCurrentDirectory());
-            while(dirInfo != null)
-            {
-                yield return dirInfo.FullName;
-                dirInfo = Directory.GetParent(dirInfo.FullName);
-            }
+            return LoadConfig(new []{Utility.FindGitDirectory()}, @"config");
         }
 
         private static IConfigurationStore LoadConfig(IEnumerable<string> paths, string filename)

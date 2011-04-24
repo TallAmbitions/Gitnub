@@ -20,6 +20,12 @@ namespace Tall.Gitnub.Nant
         public GitFunctions(Project project, PropertyDictionary properties)
             : base(project, properties) {}
 
+        [Function("getbranch")]
+        public string GetBranch()
+        {
+            return this.configuration.GetBranch();
+        }
+
         /// <summary>
         ///   Reads a value from the git configuration.
         /// </summary>
@@ -86,7 +92,7 @@ namespace Tall.Gitnub.Nant
             return Join(this.configuration.GetGlobalValues(setting));
         }
 
-        private string Join(IEnumerable<string> values)
+        private static string Join(IEnumerable<string> values)
         {
             return String.Join(",", values.ToArray());
         }
